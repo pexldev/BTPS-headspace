@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTPS - Big Three Perfectionism Scale</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #FFF5E6 0%, #FFE8CC 50%, #FFD4B2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Decorative background shapes */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            background: #FF6B6B;
+            top: -100px;
+            right: -100px;
+        }
+
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            background: #4ECDC4;
+            bottom: -50px;
+            left: -50px;
+        }
+
+        .shape-3 {
+            width: 200px;
+            height: 200px;
+            background: #FFD93D;
+            top: 40%;
+            right: 10%;
+        }
+
+        .shape-4 {
+            width: 150px;
+            height: 150px;
+            background: #95E1D3;
+            top: 20%;
+            left: 15%;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF9A76 0%, #FF6B6B 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            bottom: -50px;
+            right: -50px;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 1.15em;
+            opacity: 0.95;
+            margin-top: 10px;
+            font-weight: 300;
+        }
+
+        .progress-container {
+            background: #FFF5E6;
+            padding: 20px 40px;
+            border-bottom: 1px solid #FFE8CC;
+        }
+
+        .progress-label {
+            font-size: 0.9em;
+            color: #FF6B6B;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #FFE8CC;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF9A76, #FF6B6B);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 20px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .name-section {
+            background: linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            border: 2px solid #FFE8CC;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .name-section::before {
+            content: '✨';
+            position: absolute;
+            font-size: 3em;
+            top: -10px;
+            right: 20px;
+            opacity: 0.2;
+        }
+
+        .name-section label {
+            display: block;
+            font-size: 1.1em;
+            color: #FF6B6B;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .name-section input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #FFE8CC;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .name-section input:focus {
+            border-color: #FF9A76;
+            box-shadow: 0 0 0 4px rgba(255, 154, 118, 0.1);
+        }
+
+        .name-section small {
+            display: block;
+            margin-top: 8px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .instructions {
+            background: linear-gradient(135deg, #E8F5F3 0%, #D4EBE8 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            border-left: 6px solid #4ECDC4;
+            position: relative;
+        }
+
+        .instructions::before {
+            content: '💭';
+            position: absolute;
+            font-size: 2.5em;
+            top: 25px;
+            right: 25px;
+            opacity: 0.3;
+        }
+
+        .instructions p {
+            color: #2C5F5D;
+            font-size: 1.05em;
+            line-height: 1.7;
+        }
+
+        .question-card {
+            background: white;
+            border: 2px solid #FFF0E0;
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: all 0.4s ease;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 154, 118, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -20px;
+            right: -20px;
+            transition: all 0.4s ease;
+        }
+
+        .question-card:hover {
+            border-color: #FF9A76;
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .question-card:hover::before {
+            transform: scale(1.5);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .question-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #FF9A76, #FF6B6B);
+            color: white;
+            font-weight: 700;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .question-text {
+            font-size: 1.15em;
+            color: #2C3E50;
+            margin-bottom: 25px;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .rating-option {
+            flex: 1;
+            min-width: 65px;
+        }
+
+        .rating-option input[type="radio"] {
+            display: none;
+        }
+
+        .rating-option label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 55px;
+            background: #FFFBF5;
+            border: 2px solid #FFE8CC;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 700;
+            color: #999;
+            font-size: 1.1em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rating-option label::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #FF9A76, #FF6B6B);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .rating-option label span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .rating-option label:hover {
+            background: #FFF5E6;
+            border-color: #FF9A76;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 154, 118, 0.2);
+        }
+
+        .rating-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #FF9A76, #FF6B6B);
+            color: white;
+            border-color: #FF6B6B;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+            transform: scale(1.05);
+        }
+
+        .rating-option input[type="radio"]:checked + label::before {
+            opacity: 1;
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: #999;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .submit-section {
+            margin-top: 50px;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #FFF9F0 0%, #FFF0E0 100%);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-section::before {
+            content: '🎯';
+            position: absolute;
+            font-size: 5em;
+            top: -20px;
+            left: -20px;
+            opacity: 0.1;
+        }
+
+        .submit-section::after {
+            content: '✨';
+            position: absolute;
+            font-size: 4em;
+            bottom: -10px;
+            right: -10px;
+            opacity: 0.1;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 1.25em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(78, 205, 196, 0.5);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #CCC;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #FFE5E5, #FFD4D4);
+            color: #C41E3A;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border-left: 5px solid #FF6B6B;
+            display: none;
+            font-weight: 600;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 25px;
+            }
+
+            .rating-scale {
+                gap: 8px;
+            }
+
+            .rating-option label {
+                padding: 12px 8px;
+                font-size: 1em;
+            }
+
+            .shape-1, .shape-2, .shape-3, .shape-4 {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Decorative background shapes -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+    <div class="bg-shape shape-4"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-icon">🪷</div>
+                <h1>The Big Three Perfectionism Scale</h1>
+                <p>Take a moment to understand yourself</p>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Your Progress</span>
+                <span id="progressText">0 of 45</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="name-section">
+                <label for="userName">Your Name (Optional)</label>
+                <input type="text" id="userName" placeholder="Enter your name here...">
+                <small>This will appear on your results. Leave blank if you prefer.</small>
+            </div>
+
+            <div class="instructions">
+                <p><strong>How to complete this assessment:</strong> Please answer each statement below by selecting the number that best reflects your degree of agreement or disagreement. Take your time and be honest with yourself. There are no right or wrong answers.</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                ⚠️ Please answer all questions before downloading your results.
+            </div>
+
+            <form id="btpsForm">
+                <!-- Questions will be generated here -->
+            </form>
+
+            <div class="submit-section">
+                <button type="button" class="submit-btn" id="submitBtn" onclick="downloadPDF()">
+                    📥 Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            "I strive to be as perfect as possible.",
+            "I have doubts about most of my actions.",
+            "I am highly critical of other people's imperfections.",
+            "Other people acknowledge my superior ability.",
+            "People are disappointed in me whenever I don't do something perfectly.",
+            "I have difficulty forgiving myself when my performance is not flawless.",
+            "I am quick to point out other people's flaws.",
+            "When I make a mistake, I feel like a failure.",
+            "Everyone expects me to be perfect.",
+            "I have a strong need to be perfect.",
+            "I am never sure if I am doing things the correct way.",
+            "It is important to me that other people do things perfectly.",
+            "It bothers me when people don't notice how perfect I am.",
+            "I deserve to always have things go my way.",
+            "I am the absolute best at what I do.",
+            "My value as a person depends on being perfect.",
+            "I am very concerned about the possibility of making a mistake.",
+            "When my performance falls short of perfection, I get very mad at myself.",
+            "I judge myself harshly when I don't do something perfectly.",
+            "I always need to be aiming for perfection to feel 'right' about myself.",
+            "I know that I am perfect.",
+            "I have doubts about everything I do.",
+            "I could never respect myself if I stopped trying to achieve perfection.",
+            "The idea of making a mistake frightens me.",
+            "I feel uncertain about most things I do.",
+            "I feel disappointed with myself, when I don't do something perfectly.",
+            "I never settle for less than perfection from myself.",
+            "I am entitled to special treatment.",
+            "It is important to me to be perfect in everything I attempt.",
+            "I feel dissatisfied with other people, even when I know they are trying their best.",
+            "Other people secretly admire my perfection.",
+            "I tend to doubt whether I am doing something 'right'.",
+            "I expect other people to bend the rules for me.",
+            "People make excessive demands of me.",
+            "When I notice that I have made a mistake, I feel ashamed.",
+            "People complain that I expect too much of them.",
+            "I demand perfection from my family and friends.",
+            "Striving to be as perfect as possible makes me feel worthwhile.",
+            "I expect those close to me to be perfect.",
+            "My opinion of myself is tied to being perfect.",
+            "I get frustrated when other people make mistakes.",
+            "I do things perfectly, or I don't do them at all.",
+            "Everything that other people do must be flawless.",
+            "Making even a small mistake would upset me.",
+            "People expect too much from me."
+        ];
+
+        const scaleLabels = {
+            1: "Disagree Strongly",
+            2: "Disagree",
+            3: "Neutral",
+            4: "Agree",
+            5: "Agree Strongly"
+        };
+
+        // Generate questions
+        const form = document.getElementById('btpsForm');
+        questions.forEach((question, index) => {
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            questionCard.style.animationDelay = `${index * 0.02}s`;
+            questionCard.innerHTML = `
+                <div class="question-number">Question ${index + 1}</div>
+                <div class="question-text">${question}</div>
+                <div class="rating-scale">
+                    ${[1, 2, 3, 4, 5].map(value => `
+                        <div class="rating-option">
+                            <input type="radio" id="q${index}_${value}" name="q${index}" value="${value}" onchange="updateProgress()">
+                            <label for="q${index}_${value}"><span>${value}</span></label>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="scale-labels">
+                    <span>Disagree Strongly</span>
+                    <span>Agree Strongly</span>
+                </div>
+            `;
+            form.appendChild(questionCard);
+        });
+
+        function updateProgress() {
+            const totalQuestions = questions.length;
+            const answeredQuestions = Array.from(document.querySelectorAll('input[type="radio"]:checked')).length;
+            const progress = (answeredQuestions / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${answeredQuestions} of ${totalQuestions}`;
+        }
+
+        function downloadPDF() {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.classList.remove('show');
+
+            // Check if all questions are answered
+            const answers = [];
+            let unansweredQuestions = [];
+            
+            for (let i = 0; i < questions.length; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!selected) {
+                    unansweredQuestions.push(i + 1);
+                } else {
+                    answers.push({
+                        question: questions[i],
+                        answer: parseInt(selected.value)
+                    });
+                }
+            }
+
+            // If there are unanswered questions, show error
+            if (unansweredQuestions.length > 0) {
+                errorMessage.innerHTML = `⚠️ Please answer all questions before downloading your results. Missing: Question(s) are as follows: ${unansweredQuestions.slice(0, 15).join(', ')}${unansweredQuestions.length > 15 ? '...' : ''}`;
+                errorMessage.classList.add('show');
+                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Generate PDF with questions and responses
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const userName = document.getElementById('userName').value.trim();
+            
+            // Header background
+            doc.setFillColor(255, 154, 118);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            // Header text
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.text('Big Three Perfectionism Scale', 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text('Assessment Responses', 105, 25, { align: 'center' });
+            
+            // Name if provided
+            if (userName) {
+                doc.setFontSize(11);
+                doc.text(`Participant: ${userName}`, 105, 33, { align: 'center' });
+            }
+            
+            // Date
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(9);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 50);
+            
+            // Questions and answers
+            let y = 60;
+            const pageHeight = 280;
+            const leftMargin = 20;
+            const rightMargin = 190;
+            
+            doc.setTextColor(0, 0, 0);
+            
+            for (let i = 0; i < answers.length; i++) {
+                // Check if we need a new page
+                if (y > pageHeight - 30) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                // Question number
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(255, 107, 107);
+                doc.text(`Question ${i + 1}`, leftMargin, y);
+                y += 6;
+                
+                // Question text
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(50, 50, 50);
+                const questionLines = doc.splitTextToSize(answers[i].question, rightMargin - leftMargin);
+                doc.text(questionLines, leftMargin, y);
+                y += questionLines.length * 5;
+                
+                // Response
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(78, 205, 196);
+                doc.text(`Response: ${answers[i].answer} - ${scaleLabels[answers[i].answer]}`, leftMargin, y);
+                y += 10;
+            }
+            
+            // Footer on last page
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.setFont(undefined, 'italic');
+            const footerY = doc.internal.pageSize.height - 10;
+            doc.text('Scale: 1 = Disagree Strongly, 2 = Disagree, 3 = Neutral, 4 = Agree, 5 = Agree Strongly', 105, footerY, { align: 'center' });
+            
+            // Save the PDF
+            const fileName = userName ? `BTPS-Responses-${userName.replace(/\s+/g, '-')}.pdf` : 'BTPS-Responses.pdf';
+            doc.save(fileName);
+        }
+    </script>
+</body>
+</html>

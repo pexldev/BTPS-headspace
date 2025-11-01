@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTPS - Big Three Perfectionism Scale</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .question-counter {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 700px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .screen.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .welcome-screen h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .welcome-screen p {
+            font-size: 1.3em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .name-input-container {
+            margin-bottom: 40px;
+        }
+
+        .name-input-container label {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .name-input-container input {
+            width: 100%;
+            padding: 18px 0;
+            font-size: 1.5em;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .name-input-container input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .name-input-container input:focus {
+            border-bottom-color: white;
+        }
+
+        .name-input-container small {
+            display: block;
+            margin-top: 10px;
+            opacity: 0.7;
+            font-size: 0.95em;
+        }
+
+        .question-screen .question-number {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .question-screen .question-text {
+            font-size: 2.2em;
+            margin-bottom: 50px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 1.1em;
+            backdrop-filter: blur(10px);
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateX(10px);
+        }
+
+        .option.selected {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: white;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .option-letter {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-letter {
+            background: #667eea;
+            color: white;
+        }
+
+        .scale-hint {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
+
+        .button {
+            background: rgba(255, 255, 255, 0.95);
+            color: #667eea;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .navigation {
+            margin-top: 40px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .results-screen {
+            text-align: center;
+        }
+
+        .results-screen h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .results-name {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.5;
+            font-size: 0.85em;
+            text-align: center;
+        }
+
+        .keyboard-hint kbd {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0 3px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .welcome-screen h1 {
+                font-size: 2.5em;
+            }
+
+            .question-screen .question-text {
+                font-size: 1.6em;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .keyboard-hint {
+                display: none;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .option {
+            animation: slideInRight 0.4s ease forwards;
+        }
+
+        .option:nth-child(1) { animation-delay: 0.05s; opacity: 0; }
+        .option:nth-child(2) { animation-delay: 0.1s; opacity: 0; }
+        .option:nth-child(3) { animation-delay: 0.15s; opacity: 0; }
+        .option:nth-child(4) { animation-delay: 0.2s; opacity: 0; }
+        .option:nth-child(5) { animation-delay: 0.25s; opacity: 0; }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="question-counter" id="questionCounter"></div>
+
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div class="screen active" id="welcomeScreen">
+            <div class="welcome-screen">
+                <h1>Big Three Perfectionism Scale</h1>
+                <p>Understanding your perfectionism through 45 thoughtful questions. This will take about 5-10 minutes.</p>
+                
+                <div class="name-input-container">
+                    <label for="userName">What's your name?</label>
+                    <input type="text" id="userName" placeholder="Type your answer here..." autofocus>
+                    <small>Optional - Press Enter to continue</small>
+                </div>
+
+                <button class="button" onclick="startAssessment()">
+                    Let's Begin →
+                </button>
+            </div>
+        </div>
+
+        <!-- Question Screens (will be generated) -->
+        <div id="questionScreens"></div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="resultsScreen">
+            <div class="results-screen">
+                <h1 style="font-size: 3.5em; margin-bottom: 20px;">🎉</h1>
+                <h2>Congratulations!</h2>
+                <p style="font-size: 1.3em; margin: 20px 0 40px; opacity: 0.9;">You've completed the assessment</p>
+                <div class="results-name" id="resultsName" style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.8;"></div>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="button" onclick="downloadPDF()">
+                        📥 Download Your Responses
+                    </button>
+                    <button class="button" onclick="retakeTest()" style="padding: 16px 40px; font-size: 1.1em;">
+                        🔄 Retake Test
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="keyboard-hint">
+        Press <kbd>1</kbd>-<kbd>5</kbd> to answer • <kbd>Enter</kbd> to continue • <kbd>←</kbd> to go back
+    </div>
+
+    <script>
+        const questions = [
+            "I strive to be as perfect as possible.",
+            "I have doubts about most of my actions.",
+            "I am highly critical of other people's imperfections.",
+            "Other people acknowledge my superior ability.",
+            "People are disappointed in me whenever I don't do something perfectly.",
+            "I have difficulty forgiving myself when my performance is not flawless.",
+            "I am quick to point out other people's flaws.",
+            "When I make a mistake, I feel like a failure.",
+            "Everyone expects me to be perfect.",
+            "I have a strong need to be perfect.",
+            "I am never sure if I am doing things the correct way.",
+            "It is important to me that other people do things perfectly.",
+            "It bothers me when people don't notice how perfect I am.",
+            "I deserve to always have things go my way.",
+            "I am the absolute best at what I do.",
+            "My value as a person depends on being perfect.",
+            "I am very concerned about the possibility of making a mistake.",
+            "When my performance falls short of perfection, I get very mad at myself.",
+            "I judge myself harshly when I don't do something perfectly.",
+            "I always need to be aiming for perfection to feel 'right' about myself.",
+            "I know that I am perfect.",
+            "I have doubts about everything I do.",
+            "I could never respect myself if I stopped trying to achieve perfection.",
+            "The idea of making a mistake frightens me.",
+            "I feel uncertain about most things I do.",
+            "I feel disappointed with myself, when I don't do something perfectly.",
+            "I never settle for less than perfection from myself.",
+            "I am entitled to special treatment.",
+            "It is important to me to be perfect in everything I attempt.",
+            "I feel dissatisfied with other people, even when I know they are trying their best.",
+            "Other people secretly admire my perfection.",
+            "I tend to doubt whether I am doing something 'right'.",
+            "I expect other people to bend the rules for me.",
+            "People make excessive demands of me.",
+            "When I notice that I have made a mistake, I feel ashamed.",
+            "People complain that I expect too much of them.",
+            "I demand perfection from my family and friends.",
+            "Striving to be as perfect as possible makes me feel worthwhile.",
+            "I expect those close to me to be perfect.",
+            "My opinion of myself is tied to being perfect.",
+            "I get frustrated when other people make mistakes.",
+            "I do things perfectly, or I don't do them at all.",
+            "Everything that other people do must be flawless.",
+            "Making even a small mistake would upset me.",
+            "People expect too much from me."
+        ];
+
+        const answers = new Array(questions.length).fill(null);
+        let currentQuestion = 0;
+
+        // Generate question screens
+        const questionScreensContainer = document.getElementById('questionScreens');
+        questions.forEach((question, index) => {
+            const screen = document.createElement('div');
+            screen.className = 'screen';
+            screen.id = `question-${index}`;
+            screen.innerHTML = `
+                <div class="question-screen">
+                    <div class="question-number">Question ${index + 1} of ${questions.length}</div>
+                    <div class="question-text">${question}</div>
+                    <div class="options">
+                        ${[
+                            { value: 1, label: 'Disagree Strongly' },
+                            { value: 2, label: 'Disagree' },
+                            { value: 3, label: 'Neither Agree nor Disagree' },
+                            { value: 4, label: 'Agree' },
+                            { value: 5, label: 'Agree Strongly' }
+                        ].map((option, i) => `
+                            <div class="option" onclick="selectAnswer(${index}, ${option.value})" data-value="${option.value}">
+                                <div class="option-letter">${i + 1}</div>
+                                <div class="option-label">${option.label}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-button" onclick="previousQuestion()" ${index === 0 ? 'disabled' : ''}>
+                            ← Back
+                        </button>
+                        <button class="nav-button" onclick="nextQuestion()" id="next-${index}" disabled>
+                            ${index === questions.length - 1 ? 'Finish' : 'Next'} →
+                        </button>
+                    </div>
+                </div>
+            `;
+            questionScreensContainer.appendChild(screen);
+        });
+
+        // Allow Enter key on name input
+        document.getElementById('userName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startAssessment();
+            }
+        });
+
+        function startAssessment() {
+            showScreen('question-0');
+            updateProgress();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            setTimeout(() => {
+                document.getElementById(screenId).classList.add('active');
+            }, 100);
+            updateQuestionCounter();
+        }
+
+        function selectAnswer(questionIndex, value) {
+            answers[questionIndex] = value;
+            
+            // Update UI
+            const screen = document.getElementById(`question-${questionIndex}`);
+            screen.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+                if (parseInt(option.dataset.value) === value) {
+                    option.classList.add('selected');
+                }
+            });
+
+            // Enable next button
+            document.getElementById(`next-${questionIndex}`).disabled = false;
+
+            // Auto advance after short delay
+            setTimeout(() => {
+                if (questionIndex < questions.length - 1) {
+                    nextQuestion();
+                }
+            }, 500);
+
+            updateProgress();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showScreen(`question-${currentQuestion}`);
+                updateProgress();
+            } else {
+                calculateResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showScreen(`question-${currentQuestion}`);
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            const answeredCount = answers.filter(a => a !== null).length;
+            const progress = (answeredCount / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateQuestionCounter() {
+            const counter = document.getElementById('questionCounter');
+            const keyboardHint = document.querySelector('.keyboard-hint');
+            
+            if (currentQuestion >= 0 && currentQuestion < questions.length) {
+                counter.textContent = `${currentQuestion + 1} / ${questions.length}`;
+                if (keyboardHint) keyboardHint.style.display = 'block';
+            } else {
+                counter.textContent = '';
+                if (keyboardHint) keyboardHint.style.display = 'none';
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const activeScreen = document.querySelector('.screen.active');
+            if (!activeScreen || activeScreen.id === 'welcomeScreen' || activeScreen.id === 'resultsScreen') {
+                return;
+            }
+
+            // Number keys 1-5 for answers
+            if (e.key >= '1' && e.key <= '5') {
+                selectAnswer(currentQuestion, parseInt(e.key));
+            }
+
+            // Enter for next
+            if (e.key === 'Enter' && answers[currentQuestion] !== null) {
+                nextQuestion();
+            }
+
+            // Arrow left for previous
+            if (e.key === 'ArrowLeft' && currentQuestion > 0) {
+                previousQuestion();
+            }
+        });
+
+        function calculateResults() {
+            const userName = document.getElementById('userName').value.trim();
+            const resultsName = document.getElementById('resultsName');
+            
+            if (userName) {
+                resultsName.textContent = `Thank you, ${userName}!`;
+            } else {
+                resultsName.textContent = 'Thank you for completing the assessment!';
+            }
+
+            // Force progress bar to 100%
+            document.getElementById('progressFill').style.width = '100%';
+
+            showScreen('resultsScreen');
+            document.getElementById('questionCounter').textContent = '';
+            const keyboardHint = document.querySelector('.keyboard-hint');
+            if (keyboardHint) keyboardHint.style.display = 'none';
+
+            // Store answers and name for PDF
+            window.assessmentData = { 
+                answers: answers,
+                userName: userName,
+                completedDate: new Date().toLocaleDateString()
+            };
+        }
+
+        function retakeTest() {
+            // Reset all answers
+            for (let i = 0; i < answers.length; i++) {
+                answers[i] = null;
+            }
+            
+            // Reset current question
+            currentQuestion = 0;
+            
+            // Clear all selected options
+            document.querySelectorAll('.option.selected').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Disable all next buttons
+            questions.forEach((_, index) => {
+                const nextBtn = document.getElementById(`next-${index}`);
+                if (nextBtn) nextBtn.disabled = true;
+            });
+            
+            // Reset progress
+            updateProgress();
+            
+            // Go back to welcome screen
+            showScreen('welcomeScreen');
+            
+            // Show keyboard hint again
+            const keyboardHint = document.querySelector('.keyboard-hint');
+            if (keyboardHint) keyboardHint.style.display = 'block';
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const data = window.assessmentData;
+            
+            const answerLabels = {
+                1: 'Disagree Strongly',
+                2: 'Disagree',
+                3: 'Neither Agree nor Disagree',
+                4: 'Agree',
+                5: 'Agree Strongly'
+            };
+            
+            // Header
+            doc.setFillColor(102, 126, 234);
+            doc.rect(0, 0, 210, 50, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('Big Three Perfectionism Scale', 105, 20, { align: 'center' });
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text('Assessment Responses', 105, 30, { align: 'center' });
+            
+            if (data.userName) {
+                doc.text(`Name: ${data.userName}`, 105, 38, { align: 'center' });
+            }
+            
+            doc.setFontSize(10);
+            doc.text(`Date: ${data.completedDate}`, 105, 44, { align: 'center' });
+            
+            // Scale legend
+            doc.setTextColor(80, 80, 80);
+            doc.setFontSize(9);
+            doc.text('Rating Scale: 1 = Disagree Strongly | 2 = Disagree | 3 = Neither | 4 = Agree | 5 = Agree Strongly', 105, 58, { align: 'center' });
+            
+            let y = 70;
+            let pageNumber = 1;
+            
+            // Questions and answers
+            questions.forEach((question, index) => {
+                // Check if we need a new page
+                if (y > 270) {
+                    doc.addPage();
+                    pageNumber++;
+                    y = 20;
+                }
+                
+                // Question number
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(102, 126, 234);
+                doc.text(`Question ${index + 1}:`, 15, y);
+                
+                // Question text
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(40, 40, 40);
+                const questionLines = doc.splitTextToSize(question, 180);
+                doc.text(questionLines, 15, y + 6);
+                
+                const questionHeight = questionLines.length * 5;
+                
+                // Answer
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(102, 126, 234);
+                const userAnswer = data.answers[index];
+                const answerText = `Answer: ${userAnswer} - ${answerLabels[userAnswer]}`;
+                doc.text(answerText, 15, y + 6 + questionHeight + 4);
+                
+                // Divider line
+                doc.setDrawColor(230, 230, 230);
+                doc.line(15, y + 6 + questionHeight + 10, 195, y + 6 + questionHeight + 10);
+                
+                y += questionHeight + 20;
+            });
+            
+            // Footer on last page
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Big Three Perfectionism Scale - Assessment Responses', 105, 290, { align: 'center' });
+            
+            const fileName = data.userName ? 
+                `BTPS-Responses-${data.userName.replace(/\s+/g, '-')}.pdf` : 
+                'BTPS-Responses.pdf';
+            doc.save(fileName);
+        }
+    </script>
+</body>
+</html>
